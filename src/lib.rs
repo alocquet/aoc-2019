@@ -4,7 +4,8 @@ use std::io::prelude::*;
 pub fn read_file(file_name: &str) -> String {
     let mut file = File::open(file_name).expect("file not found");
     let mut result = String::new();
-    file.read_to_string(&mut result).expect("something went wrong reading the file");
+    file.read_to_string(&mut result)
+        .expect("something went wrong reading the file");
     result
 }
 
