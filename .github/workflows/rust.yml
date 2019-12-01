@@ -110,6 +110,3 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ${{ steps.coverage.outputs.report }}
-          flags: unittests
-          name: codecov-aoc-2019
-          yml: ./codecov.yml
