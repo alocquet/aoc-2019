@@ -105,3 +105,11 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ${{ steps.coverage.outputs.report }}
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ${{ steps.coverage.outputs.report }}
+          flags: unittests
+          name: codecov-aoc-2019
+          yml: ./codecov.yml
