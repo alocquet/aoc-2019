@@ -87,11 +87,6 @@ jobs:
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin-target-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache rustup
-        uses: actions/cache@v1
-        with:
-          path: /home/runner/.rustup
-          key: ${{ runner.os }}-cargo-rustup-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
