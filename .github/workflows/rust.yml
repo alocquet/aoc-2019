@@ -71,6 +71,15 @@ jobs:
         with:
           toolchain: nightly
           override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features --no-fail-fast
+        env:
+          CARGO_INCREMENTAL: '0'
+          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads'
+      - id: coverage  
+        uses: actions-rs/grcov@v0.1
       - name: Cache cargo registry
         uses: actions/cache@v1
         with:
@@ -86,15 +95,6 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features --no-fail-fast
-        env:
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads'
-      - id: coverage  
-        uses: actions-rs/grcov@v0.1
       - name: Coveralls upload
         uses: coverallsapp/github-action@master
         with:
