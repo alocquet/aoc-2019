@@ -18,7 +18,7 @@ mod tests {
     #[test]
     fn read_a_test_file() {
         let content = read_file("Cargo.toml");
-        assert_eq!(content.split("\n").next().unwrap(), "[package]");
+        assert_eq!(content.split('\n').next().unwrap(), "[package]");
     }
 
     #[test]
