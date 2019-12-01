@@ -8,7 +8,7 @@ pub fn step2() -> usize {
 
 pub fn run(fuel_has_mass: bool) -> usize {
     crate::read_file("src/advent/day01/input.txt")
-        .split("\n")
+        .split('\n')
         .map(|mass_str| {
             mass_str
                 .parse::<usize>()
