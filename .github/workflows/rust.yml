@@ -101,7 +101,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: tarpaulin
-          args: --out Xml --skip-clean
+          args: --out Xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
