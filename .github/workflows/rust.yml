@@ -93,25 +93,17 @@ jobs:
           override: true
       - uses: actions-rs/cargo@v1
         with:
+          command: install
+          args: cargo-tarpaulin -f
+      - uses: actions-rs/cargo@v1
+        with:
           command: build
-#          args: --all-features --no-fail-fast
       - uses: actions-rs/cargo@v1
         with:
           command: tarpaulin
           args: --out Xml --skip-clean
-#        env:
-#          CARGO_INCREMENTAL: '0'
-#          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads'
-#      - id: coverage
-#        uses: actions-rs/grcov@v0.1
-#      - name: Coveralls upload
-#        uses: coverallsapp/github-action@master
-#        with:
-#          github-token: ${{ secrets.GITHUB_TOKEN }}
-#          path-to-lcov: ${{ steps.coverage.outputs.report }}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./cobertura.xml
-#          file: ${{ steps.coverage.outputs.report }}
