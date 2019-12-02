@@ -24,9 +24,11 @@ pub fn step2(expected_result: usize) -> Option<usize> {
 fn parse_input() -> Vec<usize> {
     crate::read_file("src/advent/day02/input.txt")
         .split(',')
-        .map(|number| number
-            .parse::<usize>()
-            .expect("input should contain only numbers"))
+        .map(|number| {
+            number
+                .parse::<usize>()
+                .expect("input should contain only numbers")
+        })
         .collect()
 }
 
@@ -39,7 +41,7 @@ fn execute_program(mut input: Vec<usize>) -> Vec<usize> {
             1 => input[output_idx] = noun + verb,
             2 => input[output_idx] = noun * verb,
             99 => return input,
-            _ => panic!("operator value not expected")
+            _ => panic!("operator value not expected"),
         }
     }
     input
@@ -55,18 +57,30 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn unknown_operator_should_panic() {
+        execute_program(vec![3, 0, 0, 0, 99]);
+    }
+
+    #[test]
     fn simple_multiplication() {
         assert_eq!(execute_program(vec!(2, 3, 0, 3, 99)), &[2, 3, 0, 6, 99]);
     }
 
     #[test]
     fn program_ends_when_there_is_99() {
-        assert_eq!(execute_program(vec!(2, 4, 4, 5, 99, 0)), &[2, 4, 4, 5, 99, 9801]);
+        assert_eq!(
+            execute_program(vec!(2, 4, 4, 5, 99, 0)),
+            &[2, 4, 4, 5, 99, 9801]
+        );
     }
 
     #[test]
     fn if_99_is_erased_program_doesnt_end() {
-        assert_eq!(execute_program(vec!(1, 1, 1, 4, 99, 5, 6, 0, 99)), &[30, 1, 1, 4, 2, 5, 6, 0, 99]);
+        assert_eq!(
+            execute_program(vec!(1, 1, 1, 4, 99, 5, 6, 0, 99)),
+            &[30, 1, 1, 4, 2, 5, 6, 0, 99]
+        );
     }
 
     #[test]
