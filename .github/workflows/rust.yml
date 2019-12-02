@@ -92,13 +92,8 @@ jobs:
         with:
           toolchain: stable
           override: true
-      - name: Build Tarpaulin
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: cargo-tarpaulin --root ~/.cargo/tarpaulin
-      - name: List directory
-        run: ls -al ~/.cargo/tarpaulin/bin/
+      - name: Download Tarpaulin
+        run: curl -sL https://github.com/xd009642/tarpaulin/releases/download/0.9.3/cargo-tarpaulin-0.9.3-travis.tar.gz | tar xvz -C $HOME/.cargo/bin
       - name: Build Project
         uses: actions-rs/cargo@v1
         with:
