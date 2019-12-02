@@ -98,7 +98,7 @@ jobs:
           command: install
           args: cargo-tarpaulin --root ~/.cargo/tarpaulin
       - name: Copy Tarpaulin binary in right place
-        run: cp ~/.cargo/tarpaulin/bin/cargo-tarpaulin ~/.cargo/bin/cargo-tarpaulin
+        run: cp ~/.cargo/tarpaulin/bin/* ~/.cargo/bin/
       - name: Build Project
         uses: actions-rs/cargo@v1
         with:
