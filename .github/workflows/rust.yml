@@ -82,23 +82,19 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo bin
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/bin
-          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions-rs/toolchain@v1
+      - name: Install rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: cargo-tarpaulin -f
-      - uses: actions-rs/cargo@v1
+      - name: Download Tarpaulin
+        run: curl -sL https://github.com/xd009642/tarpaulin/releases/download/0.9.3/cargo-tarpaulin-0.9.3-travis.tar.gz | tar xvz -C $HOME/.cargo/bin
+      - name: Build Project
+        uses: actions-rs/cargo@v1
         with:
           command: build
-      - uses: actions-rs/cargo@v1
+      - name: Run Tarpaulin on project
+        uses: actions-rs/cargo@v1
         with:
           command: tarpaulin
           args: --out Xml
