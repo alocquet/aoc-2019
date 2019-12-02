@@ -108,7 +108,6 @@ jobs:
         with:
           command: tarpaulin
           args: --out Xml
-        env: PATH=$PATH:~/.cargo/tarpaulin/bin
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
