@@ -97,8 +97,8 @@ jobs:
         with:
           command: install
           args: cargo-tarpaulin --root ~/.cargo/tarpaulin
-      - name: Copy Tarpaulin binary in right place
-        run: cp ~/.cargo/tarpaulin/bin/* ~/.cargo/bin/
+      - name: List directory
+        run: ls -al ~/.cargo/tarpaulin/bin/
       - name: Build Project
         uses: actions-rs/cargo@v1
         with:
@@ -108,6 +108,7 @@ jobs:
         with:
           command: tarpaulin
           args: --out Xml
+        env: PATH=$PATH:~/.cargo/tarpaulin/bin
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
