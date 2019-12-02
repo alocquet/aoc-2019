@@ -85,20 +85,26 @@ jobs:
       - name: Cache cargo bin
         uses: actions/cache@v1
         with:
-          path: ~/.cargo/bin/cargo-tarpaulin
+          path: ~/.cargo/tarpaulin/bin
           key: ${{ runner.os }}-cargo-tarpaulin-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions-rs/toolchain@v1
+      - name: Install rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
+      - name: Build Tarpaulin
+        uses: actions-rs/cargo@v1
         with:
           command: install
-          args: cargo-tarpaulin -f
-      - uses: actions-rs/cargo@v1
+          args: cargo-tarpaulin --root ~/.cargo/tarpaulin/bin
+      - name: Copy Tarpaulin binary in right place
+        run: cp ~/.cargo/tarpaulin/bin/cargo-tarpaulin ~/.cargo/bin/cargo-tarpaulin
+      - name: Build Project
+        uses: actions-rs/cargo@v1
         with:
           command: build
-      - uses: actions-rs/cargo@v1
+      - name: Run Tarpaulin on project
+        uses: actions-rs/cargo@v1
         with:
           command: tarpaulin
           args: --out Xml
