@@ -18,18 +18,18 @@ fn parse_instruction(input: &str) -> Instruction {
         .chars()
         .next()
         .expect("instruction should never be empty")
-    {
-        'U' => UP,
-        'D' => DOWN,
-        'L' => LEFT,
-        'R' => RIGHT,
-        _ => panic!("bad instruction"),
-    };
+        {
+            'U' => UP,
+            'D' => DOWN,
+            'L' => LEFT,
+            'R' => RIGHT,
+            _ => panic!("bad instruction"),
+        };
     let steps = input[1..].parse::<usize>().expect("direction is malformed");
     Instruction { direction, steps }
 }
 
-fn visit_path(path: &Vec<Instruction>, visitor: &mut dyn FnMut(Point, usize) -> ()) {
+fn visit_path(path: &[Instruction], visitor: &mut dyn FnMut(Point, usize) -> ()) {
     let mut current = Point { x: 0, y: 0 };
     let mut idx: usize = 0;
 
@@ -69,9 +69,7 @@ pub fn compute_lower_intersection_steps(input: &str) -> usize {
     let mut intersection = HashMap::new();
 
     visit_path(&instructions[0], &mut |point, idx| {
-        if !first_path.contains_key(&point) {
-            first_path.insert(point, idx);
-        }
+        first_path.entry(point).or_insert(idx);
     });
     visit_path(&instructions[1], &mut |point, idx| {
         if first_path.contains_key(&point) && !intersection.contains_key(&point) {
