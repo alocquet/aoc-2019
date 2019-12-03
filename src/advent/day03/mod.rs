@@ -91,7 +91,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn bad_instruction() {
-        parse_instruction("R2D2");
+        parse_instruction("M01");
     }
 
     #[test]
