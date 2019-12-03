@@ -89,6 +89,12 @@ mod tests {
     use super::*;
 
     #[test]
+    #[should_panic]
+    fn bad_instruction() {
+        parse_instruction("R2D2");
+    }
+
+    #[test]
     fn first_example() {
         assert_eq!(
             compute_lower_intersection_manhattan_distance("R8,U5,L5,D3\nU7,R6,D4,L4"),

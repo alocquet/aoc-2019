@@ -1,4 +1,3 @@
-use std::ops::Add;
 use std::ops::AddAssign;
 
 pub const UP: Point = Point { x: 0, y: -1 };
@@ -24,15 +23,5 @@ impl AddAssign for Point {
             x: self.x + other.x,
             y: self.y + other.y,
         };
-    }
-}
-
-impl Add for Point {
-    type Output = Point;
-    fn add(self, other: Point) -> Point {
-        Point {
-            x: self.x + other.x,
-            y: self.y + other.y,
-        }
     }
 }
