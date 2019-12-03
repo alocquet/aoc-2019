@@ -1,5 +1,5 @@
-use std::ops::AddAssign;
 use std::ops::Add;
+use std::ops::AddAssign;
 
 pub const UP: Point = Point { x: 0, y: -1 };
 pub const DOWN: Point = Point { x: 0, y: 1 };
@@ -13,7 +13,7 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn manhattan_distance_from(&self, other: &Point) -> usize{
+    pub fn manhattan_distance_from(&self, other: &Point) -> usize {
         (self.x - other.x).abs() as usize + (self.y - other.y).abs() as usize
     }
 }
