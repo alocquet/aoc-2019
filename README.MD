@@ -4,10 +4,15 @@
 
 * Executer les tests
 ```
-cargo test
+cargo test --release
 ```
 
 * Formater
 ```
 cargo fmt
+```
+
+* Clippy pour le lint
+```
+cargo clippy
 ```
