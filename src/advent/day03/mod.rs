@@ -18,13 +18,13 @@ fn parse_instruction(input: &str) -> Instruction {
         .chars()
         .next()
         .expect("instruction should never be empty")
-        {
-            'U' => UP,
-            'D' => DOWN,
-            'L' => LEFT,
-            'R' => RIGHT,
-            _ => panic!("bad instruction"),
-        };
+    {
+        'U' => UP,
+        'D' => DOWN,
+        'L' => LEFT,
+        'R' => RIGHT,
+        _ => panic!("bad instruction"),
+    };
     let steps = input[1..].parse::<usize>().expect("direction is malformed");
     Instruction { direction, steps }
 }
