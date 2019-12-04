@@ -3,60 +3,40 @@ extern crate digits_iterator;
 use digits_iterator::*;
 
 pub fn step1() -> usize {
-    let mut counter = 0;
-    for number in 130254..678275 {
-        if is_valid(number) {
-            counter += 1;
-        }
-    }
-    counter
-}
-
-fn is_valid(number: usize) -> bool{
-    let mut previous = 0;
-    let mut hasDouble = false;
-    for digit in number.digits() {
-        if digit < previous {
-            return false;
-        }
-        if digit == previous {
-            hasDouble = true;
-        }
-        previous = digit;
-    }
-    return hasDouble;
+    count_valid(false)
 }
 
 pub fn step2() -> usize {
-    let mut counter = 0;
-    for number in 130254..678275 {
-        if is_valid_step2(number) {
-            counter += 1;
-        }
-    }
-    counter
+    count_valid(true)
 }
 
-fn is_valid_step2(number: usize) -> bool{
+pub fn count_valid(strict_double: bool) -> usize {
+    (130_254..678_275)
+        .filter(|&number| is_valid(number, strict_double))
+        .count()
+}
+
+fn match_double_pattern(nb_same_digit: usize, strict_double: bool) -> bool {
+    nb_same_digit == 2 || !strict_double && nb_same_digit > 2
+}
+
+fn is_valid(number: usize, strict_double: bool) -> bool {
     let mut previous = 0;
-    let mut isCurrentDouble = false;
-    let mut digitAccount = 1;
-    let mut hasDouble = false;
+    let mut nb_same_digit = 1;
+    let mut has_double = false;
     for digit in number.digits() {
         if digit < previous {
             return false;
         }
         if digit == previous {
-            digitAccount+=1;
+            nb_same_digit += 1;
         } else {
-            if digitAccount == 2 {
-                hasDouble = true
-            }
-            digitAccount = 1;
+            has_double = has_double || match_double_pattern(nb_same_digit, strict_double);
+            nb_same_digit = 1;
         }
         previous = digit;
     }
-    return hasDouble || digitAccount == 2;
+    has_double || match_double_pattern(nb_same_digit, strict_double)
 }
 
 #[cfg(test)]
@@ -72,5 +52,4 @@ mod tests {
     fn check_step2() {
         assert_eq!(step2(), 1419);
     }
-
 }
