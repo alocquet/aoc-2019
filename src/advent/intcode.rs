@@ -35,7 +35,6 @@ struct Operation {
 
 impl Operation {
     fn from(input: isize) -> Self {
-        dbg!(input);
         Operation {
             code: num::FromPrimitive::from_isize(input % 100).expect("bad operation code"),
             immediate: (input / 100 % 10 == 1, input / 1000 % 100 == 1),
