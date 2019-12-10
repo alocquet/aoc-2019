@@ -15,6 +15,9 @@ impl Point {
     pub fn manhattan_distance_from(&self, other: &Point) -> usize {
         (self.x - other.x).abs() as usize + (self.y - other.y).abs() as usize
     }
+    pub fn angle_with(&self, other: &Point) -> f64 {
+        (self.x as f64 - other.x as f64).atan2(self.y as f64 - other.y as f64)
+    }
 }
 
 impl AddAssign for Point {

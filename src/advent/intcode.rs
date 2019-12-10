@@ -18,23 +18,42 @@ pub struct Program {
     pub state: ProgramState,
 }
 
-struct OperationMode { modes: (u8, u8, u8) }
+struct OperationMode {
+    modes: (u8, u8, u8),
+}
 
-struct Add { op_modes: OperationMode }
+struct Add {
+    op_modes: OperationMode,
+}
 
-struct Mul { op_modes: OperationMode }
+struct Mul {
+    op_modes: OperationMode,
+}
 
-struct Set { op_modes: OperationMode }
+struct Set {
+    op_modes: OperationMode,
+}
 
-struct Print { op_modes: OperationMode }
+struct Print {
+    op_modes: OperationMode,
+}
 
-struct JumpIf { op_modes: OperationMode, test: bool }
+struct JumpIf {
+    op_modes: OperationMode,
+    test: bool,
+}
 
-struct LessThan { op_modes: OperationMode }
+struct LessThan {
+    op_modes: OperationMode,
+}
 
-struct Equals { op_modes: OperationMode }
+struct Equals {
+    op_modes: OperationMode,
+}
 
-struct RelativeBaseOffset { op_modes: OperationMode }
+struct RelativeBaseOffset {
+    op_modes: OperationMode,
+}
 
 struct Exit {}
 
@@ -42,27 +61,32 @@ trait Operation {
     fn execute(&self, prog: &mut Program);
 }
 
-
 fn parse_ope(input: isize) -> Box<dyn Operation> {
     let op_modes = OperationMode {
         modes: (
             (input / 100 % 10) as u8,
             (input / 1000 % 10) as u8,
             (input / 10000 % 10) as u8,
-        )
+        ),
     };
     match input % 100 {
         1 => Box::new(Add { op_modes }),
         2 => Box::new(Mul { op_modes }),
         3 => Box::new(Set { op_modes }),
         4 => Box::new(Print { op_modes }),
-        5 => Box::new(JumpIf { op_modes, test: true }),
-        6 => Box::new(JumpIf { op_modes, test: false }),
+        5 => Box::new(JumpIf {
+            op_modes,
+            test: true,
+        }),
+        6 => Box::new(JumpIf {
+            op_modes,
+            test: false,
+        }),
         7 => Box::new(LessThan { op_modes }),
         8 => Box::new(Equals { op_modes }),
         9 => Box::new(RelativeBaseOffset { op_modes }),
         99 => Box::new(Exit {}),
-        _ => panic!("Bad operator")
+        _ => panic!("Bad operator"),
     }
 }
 
@@ -93,8 +117,7 @@ impl Operation for Mul {
 impl Operation for Set {
     fn execute(&self, prog: &mut Program) {
         if let Some(input) = prog.input.pop_front() {
-            let output_idx =
-                prog.get_operation_idx(prog.idx + 1, self.op_modes.modes.0);
+            let output_idx = prog.get_operation_idx(prog.idx + 1, self.op_modes.modes.0);
             prog.operations.insert(output_idx, input);
             prog.idx += 2;
         } else {
@@ -129,9 +152,9 @@ impl Operation for LessThan {
             output_idx,
             if prog.get_value(prog.idx + 1, self.op_modes.modes.0)
                 < prog.get_value(prog.idx + 2, self.op_modes.modes.1)
-                {
-                    1
-                } else {
+            {
+                1
+            } else {
                 0
             },
         );
@@ -144,11 +167,14 @@ impl Operation for Equals {
         let output_idx = prog.get_operation_idx(prog.idx + 3, self.op_modes.modes.2);
         prog.operations.insert(
             output_idx,
-            if prog.get_value(prog.idx + 1, self.op_modes.modes.0) == prog.get_value(prog.idx + 2, self.op_modes.modes.1) {
+            if prog.get_value(prog.idx + 1, self.op_modes.modes.0)
+                == prog.get_value(prog.idx + 2, self.op_modes.modes.1)
+            {
                 1
             } else {
                 0
-            });
+            },
+        );
         prog.idx += 4;
     }
 }
