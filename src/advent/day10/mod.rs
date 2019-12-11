@@ -20,7 +20,7 @@ pub fn parse_map(input: String) -> Vec<Point> {
         .collect()
 }
 
-pub fn find_best_asteroid(asteroids: &Vec<Point>) -> Option<(Point, usize)> {
+pub fn find_best_asteroid(asteroids: &[Point]) -> Option<(Point, usize)> {
     let mut result = None;
     let mut count = 0;
     for &a in asteroids {
@@ -39,21 +39,22 @@ pub fn find_best_asteroid(asteroids: &Vec<Point>) -> Option<(Point, usize)> {
     result
 }
 
-pub fn find_nth_vaporized(asteroids: &Vec<Point>, nth: usize) -> Point {
+pub fn find_nth_vaporized(asteroids: &[Point], nth: usize) -> Point {
     let (station, _) = find_best_asteroid(asteroids).unwrap();
 
     let mut angles: HashMap<isize, Point> = HashMap::new();
     for &b in asteroids {
         if station != b {
             let angle = -(station.angle_with(&b) * 100_000.0) as isize;
-            if angles.contains_key(&angle) {
-                let other = angles.get(&angle).unwrap();
-                if other.manhattan_distance_from(&station) > b.manhattan_distance_from(&station) {
-                    angles.insert(angle, b);
-                }
-            } else {
-                angles.insert(angle, b);
-            }
+            angles
+                .entry(angle)
+                .and_modify(|other| {
+                    if other.manhattan_distance_from(&station) > b.manhattan_distance_from(&station)
+                    {
+                        *other = b;
+                    }
+                })
+                .or_insert(b);
         }
     }
 
@@ -63,8 +64,7 @@ pub fn find_nth_vaporized(asteroids: &Vec<Point>, nth: usize) -> Point {
         .iter()
         .cycle()
         .skip_while(|&&&a| a < 0)
-        .skip(nth - 1)
-        .next()
+        .nth(nth - 1)
         .unwrap();
     *angles.get(angle).unwrap()
 }

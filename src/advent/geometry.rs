@@ -1,5 +1,9 @@
-use std::ops::AddAssign;
 use std::cmp::Ordering;
+use std::collections::HashMap;
+use std::fmt::Display;
+use std::fmt::Error;
+use std::fmt::Formatter;
+use std::ops::AddAssign;
 
 pub const UP: Point = Point { x: 0, y: -1 };
 pub const DOWN: Point = Point { x: 0, y: 1 };
@@ -11,6 +15,39 @@ pub const ORIGIN: Point = Point { x: 0, y: 0 };
 pub struct Point {
     pub x: isize,
     pub y: isize,
+}
+
+#[derive(Default)]
+pub struct Map<T> {
+    pub values: HashMap<Point, T>,
+}
+
+impl<T> Map<T> {}
+
+impl Display for Map<bool> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        let points: Vec<Point> = self.values.keys().cloned().collect();
+        let min_x = points.iter().min_by_key(|p| p.x).unwrap().x;
+        let max_x = points.iter().max_by_key(|p| p.x).unwrap().x;
+        let min_y = points.iter().min_by_key(|p| p.y).unwrap().y;
+        let max_y = points.iter().max_by_key(|p| p.y).unwrap().y;
+
+        for y in min_y..=max_y {
+            for x in min_x..=max_x {
+                write!(
+                    f,
+                    "{}",
+                    if *self.values.get(&Point::new(x, y)).unwrap_or(&false) {
+                        '#'
+                    } else {
+                        '.'
+                    }
+                )?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
+    }
 }
 
 impl Point {
@@ -40,7 +77,6 @@ impl AddAssign for Point {
         };
     }
 }
-
 
 impl Ord for Point {
     fn cmp(&self, other: &Self) -> Ordering {

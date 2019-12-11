@@ -40,7 +40,7 @@ struct Print {
 
 struct JumpIf {
     op_modes: OperationMode,
-    test: bool,
+    if_true: bool,
 }
 
 struct LessThan {
@@ -76,11 +76,11 @@ fn parse_ope(input: isize) -> Box<dyn Operation> {
         4 => Box::new(Print { op_modes }),
         5 => Box::new(JumpIf {
             op_modes,
-            test: true,
+            if_true: true,
         }),
         6 => Box::new(JumpIf {
             op_modes,
-            test: false,
+            if_true: false,
         }),
         7 => Box::new(LessThan { op_modes }),
         8 => Box::new(Equals { op_modes }),
@@ -137,7 +137,7 @@ impl Operation for Print {
 impl Operation for JumpIf {
     fn execute(&self, prog: &mut Program) {
         let value = prog.get_value(prog.idx + 1, self.op_modes.modes.0);
-        if self.test && value != 0 || !self.test && value == 0 {
+        if self.if_true == (value != 0) {
             prog.idx = prog.get_value(prog.idx + 2, self.op_modes.modes.1) as usize;
         } else {
             prog.idx += 3;
