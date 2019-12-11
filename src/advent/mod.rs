@@ -10,3 +10,4 @@ pub mod day09;
 pub mod day10;
 pub mod geometry;
 pub mod intcode;
+pub mod day11;
