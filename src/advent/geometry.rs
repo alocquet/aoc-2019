@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::fmt::Error;
@@ -12,7 +11,7 @@ pub const RIGHT: Point = Point { x: 1, y: 0 };
 pub const LEFT: Point = Point { x: -1, y: 0 };
 pub const ORIGIN: Point = Point { x: 0, y: 0 };
 
-pub const D3_ORIGIN: D3Point = D3Point { x: 0, y: 0, z:0 };
+pub const D3_ORIGIN: D3Point = D3Point { x: 0, y: 0, z: 0 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Point {
@@ -80,8 +79,8 @@ impl Point {
 }
 
 impl D3Point {
-    pub fn new(x: isize, y: isize, z:isize) -> Self {
-        D3Point { x, y,z }
+    pub fn new(x: isize, y: isize, z: isize) -> Self {
+        D3Point { x, y, z }
     }
 }
 
@@ -91,22 +90,6 @@ impl AddAssign for Point {
             x: self.x + other.x,
             y: self.y + other.y,
         };
-    }
-}
-
-impl Ord for Point {
-    fn cmp(&self, other: &Self) -> Ordering {
-        if self.y == other.y {
-            self.x.cmp(&other.x)
-        } else {
-            self.y.cmp(&other.y)
-        }
-    }
-}
-
-impl PartialOrd for Point {
-    fn partial_cmp(&self, other: &Point) -> Option<Ordering> {
-        Some(self.cmp(other))
     }
 }
 

@@ -1,77 +1,114 @@
-use crate::read_file;
 use crate::advent::geometry::D3Point;
 use crate::advent::geometry::D3_ORIGIN;
-use std::collections::HashSet;
-use std::collections::HashMap;
 use num::Integer;
 
-pub fn step1(input: &[D3Point; 4], steps: usize) -> usize {
-    let mut moons = input.clone();
-    let mut velocities = [D3_ORIGIN, D3_ORIGIN, D3_ORIGIN, D3_ORIGIN];
+#[derive(Clone)]
+struct Moon {
+    position: D3Point,
+    velocity: D3Point,
+}
 
-    for step in 1..=steps {
-        // update velocities
-        for i in 0..4 {
-            for j in i + 1..4 {
-                let mut moon = moons[i];
-                let other = moons[j];
-                let velocity_change = D3Point { x: compute_velocity_change(moon.x, other.x), y: compute_velocity_change(moon.y, other.y), z: compute_velocity_change(moon.z, other.z) };
-                velocities[i] += velocity_change;
-                velocities[j] -= velocity_change;
-            }
-        }
-
-        // update positions
-        for i in 0..4 {
-            moons[i] += velocities[i];
-        }
+impl Moon {
+    fn apply_velocity(&mut self) {
+        self.position += self.velocity;
+    }
+    fn potential_energy(&self) -> usize {
+        (self.position.x.abs() + self.position.y.abs() + self.position.z.abs()) as usize
     }
 
-    moons.iter().zip(&velocities).map(|(moon, velocity)| (moon.x.abs() + moon.y.abs() + moon.z.abs()) * (velocity.x.abs() + velocity.y.abs() + velocity.z.abs())).sum::<isize>() as usize
+    fn kinetic_energy(&self) -> usize {
+        (self.velocity.x.abs() + self.velocity.y.abs() + self.velocity.z.abs()) as usize
+    }
+    fn has_common_axis(&self, other: &Self) -> [bool; 3] {
+        [
+            self.position.x == other.position.x && self.velocity.x == other.velocity.x,
+            self.position.y == other.position.y && self.velocity.y == other.velocity.y,
+            self.position.z == other.position.z && self.velocity.z == other.velocity.z,
+        ]
+    }
+}
+
+fn parse_moons(input: &[D3Point; 4]) -> Vec<Moon> {
+    input
+        .iter()
+        .map(|point| Moon {
+            position: *point,
+            velocity: D3_ORIGIN,
+        })
+        .collect()
+}
+
+pub fn step1(input: &[D3Point; 4], steps: usize) -> usize {
+    let mut moons = parse_moons(input);
+
+    for _ in 1..=steps {
+        // update velocities
+        apply_gravity(&mut moons);
+        // update positions
+        moons.iter_mut().for_each(Moon::apply_velocity);
+    }
+
+    moons
+        .iter()
+        .map(|moon| moon.potential_energy() * moon.kinetic_energy())
+        .sum()
 }
 
 pub fn step2(input: &[D3Point; 4]) -> usize {
-    let mut moons = input.clone();
-    let mut velocities = [D3_ORIGIN, D3_ORIGIN, D3_ORIGIN, D3_ORIGIN];
-    let mut found = [None, None, None];
-    let mut step = 1;
-    while found[0].is_none() || found[1].is_none() || found[2].is_none() {
+    let mut moons = parse_moons(input);
+    let start_state = moons.clone();
+    let mut cycles_idx = [None; 3];
+
+    for step in 1.. {
         // update velocities
+        apply_gravity(&mut moons);
+        // update positions
+        moons.iter_mut().for_each(Moon::apply_velocity);
+
+        // check match
+        let mut matching = [true; 3];
         for i in 0..4 {
-            for j in i + 1..4 {
-                let mut moon = moons[i];
-                let other = moons[j];
-                let velocity_change = D3Point { x: compute_velocity_change(moon.x, other.x), y: compute_velocity_change(moon.y, other.y), z: compute_velocity_change(moon.z, other.z) };
-                velocities[i] += velocity_change;
-                velocities[j] -= velocity_change;
+            let common_axis = moons[i].has_common_axis(&start_state[i]);
+            for j in 0..3 {
+                matching[j] &= cycles_idx[j].is_none() && common_axis[j];
             }
         }
+        matching
+            .iter()
+            .enumerate()
+            .filter(|(_, matched)| **matched)
+            .for_each(|(idx, _)| cycles_idx[idx] = Some(step));
 
-        // update positions
-        // check step2
-        let mut is_matching = [true, true, true];
-        for i in 0..4 {
-            moons[i] += velocities[i];
-            is_matching[0] = found[0].is_none() && is_matching[0] && moons[i].x == input[i].x && velocities[i].x == 0;
-            is_matching[1] = found[1].is_none() && is_matching[1] && moons[i].y == input[i].y && velocities[i].y == 0;
-            is_matching[2] = found[2].is_none() && is_matching[2] && moons[i].z == input[i].z && velocities[i].z == 0;
+        if cycles_idx.iter().find(|cycle| cycle.is_none()).is_none() {
+            break;
         }
-        for i in 0..3 {
-            if is_matching[i] { found[i] = Some(step); }
-        }
-        step += 1;
     }
 
-    found[0].unwrap().lcm(&found[1].unwrap()).lcm(&found[2].unwrap())
+    cycles_idx
+        .iter()
+        .flatten()
+        .fold(1, |result, cycle| result.lcm(cycle))
 }
 
-fn compute_velocity_change(moon: isize, other: isize) -> isize {
-    if moon > other {
-        -1
-    } else if moon < other {
-        1
-    } else {
-        0
+fn apply_gravity(moons: &mut Vec<Moon>) {
+    for i in 0..4 {
+        for j in i + 1..4 {
+            let velocity_change = moons[i]
+                .position
+                .compute_velocity_change(&moons[j].position);
+            moons[i].velocity += velocity_change;
+            moons[j].velocity -= velocity_change;
+        }
+    }
+}
+
+impl D3Point {
+    fn compute_velocity_change(&self, other: &D3Point) -> Self {
+        D3Point {
+            x: other.x.cmp(&self.x) as isize,
+            y: other.y.cmp(&self.y) as isize,
+            z: other.z.cmp(&self.z) as isize,
+        }
     }
 }
 
@@ -79,15 +116,35 @@ fn compute_velocity_change(moon: isize, other: isize) -> isize {
 mod tests {
     use super::*;
 
-    const INPUT: [D3Point; 4] = [D3Point { x: -9, y: -1, z: -1 },
+    const INPUT: [D3Point; 4] = [
+        D3Point {
+            x: -9,
+            y: -1,
+            z: -1,
+        },
         D3Point { x: 2, y: 9, z: 5 },
-        D3Point { x: 10, y: 18, z: -12 },
-        D3Point { x: -6, y: 15, z: -7 }];
+        D3Point {
+            x: 10,
+            y: 18,
+            z: -12,
+        },
+        D3Point {
+            x: -6,
+            y: 15,
+            z: -7,
+        },
+    ];
 
-    const EXAMPLE: [D3Point; 4] = [D3Point { x: -1, y: 0, z: 2 },
-        D3Point { x: 2, y: -10, z: -7 },
+    const EXAMPLE: [D3Point; 4] = [
+        D3Point { x: -1, y: 0, z: 2 },
+        D3Point {
+            x: 2,
+            y: -10,
+            z: -7,
+        },
         D3Point { x: 4, y: -8, z: 8 },
-        D3Point { x: 3, y: 5, z: -1 }];
+        D3Point { x: 3, y: 5, z: -1 },
+    ];
 
     #[test]
     fn example() {
