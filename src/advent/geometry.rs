@@ -4,6 +4,7 @@ use std::fmt::Display;
 use std::fmt::Error;
 use std::fmt::Formatter;
 use std::ops::AddAssign;
+use std::ops::SubAssign;
 
 pub const UP: Point = Point { x: 0, y: -1 };
 pub const DOWN: Point = Point { x: 0, y: 1 };
@@ -11,10 +12,19 @@ pub const RIGHT: Point = Point { x: 1, y: 0 };
 pub const LEFT: Point = Point { x: -1, y: 0 };
 pub const ORIGIN: Point = Point { x: 0, y: 0 };
 
+pub const D3_ORIGIN: D3Point = D3Point { x: 0, y: 0, z:0 };
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Point {
     pub x: isize,
     pub y: isize,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct D3Point {
+    pub x: isize,
+    pub y: isize,
+    pub z: isize,
 }
 
 #[derive(Default)]
@@ -69,6 +79,12 @@ impl Point {
     }
 }
 
+impl D3Point {
+    pub fn new(x: isize, y: isize, z:isize) -> Self {
+        D3Point { x, y,z }
+    }
+}
+
 impl AddAssign for Point {
     fn add_assign(&mut self, other: Point) {
         *self = Point {
@@ -91,5 +107,25 @@ impl Ord for Point {
 impl PartialOrd for Point {
     fn partial_cmp(&self, other: &Point) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+impl AddAssign for D3Point {
+    fn add_assign(&mut self, other: D3Point) {
+        *self = D3Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        };
+    }
+}
+
+impl SubAssign for D3Point {
+    fn sub_assign(&mut self, other: D3Point) {
+        *self = D3Point {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
+        };
     }
 }
