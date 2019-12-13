@@ -3,13 +3,16 @@ use crate::advent::geometry::Point;
 use crate::advent::geometry::ORIGIN;
 use crate::advent::intcode::Program;
 use crate::advent::intcode::ProgramState;
+use std::fmt::Formatter;
+use std::fmt::Error;
+use termion::{color, style, cursor};
 
 const SCORE_FLAG: Point = Point { x: -1, y: 0 };
 
 pub fn execute(mut input: Vec<isize>, display: bool) -> (usize, isize) {
     input[0] = 2; // 2 quarters
     let mut program = Program::new(input);
-    let mut map = Map::new(cell_formatter);
+    let mut map = Map::new(cell_formatter, newline_formatter);
     let mut ball = ORIGIN;
     let mut paddle = ORIGIN;
     let mut score = 0;
@@ -42,6 +45,7 @@ pub fn execute(mut input: Vec<isize>, display: bool) -> (usize, isize) {
         program.input.push_back(ball.x.cmp(&paddle.x) as isize);
         first_display = display_game(display, &map, score, first_display);
     }
+    print!("{}", cursor::Show);
     (nb_blocks.unwrap(), score)
 }
 
@@ -49,29 +53,40 @@ pub fn execute(mut input: Vec<isize>, display: bool) -> (usize, isize) {
 #[cfg_attr(tarpaulin, skip)]
 fn display_game(display: bool, map: &Map<isize>, score: isize, first_display: bool) -> bool {
     if display {
-        if !first_display {
-            let mut t = term::stdout().expect("should have a term");
-            for _ in 0..map.height() + 3 {
-                t.cursor_up().expect("should be ok");
-            }
+        if first_display {
+            print!("{}", cursor::Hide);
+            let term_size = termion::terminal_size().ok();
+            let term_height = term_size.map(|(_, h)| h - 2).unwrap();
+            let term_width = term_size.map(|(w, _)| w - 2).unwrap();
+            print!("{}", termion::clear::All);
+            print!("{}{}", cursor::Goto((term_width - map.width() as u16 * 2) / 2, (term_height - map.height() as u16) / 2), cursor::Save);
+        } else {
+            print!("{}", cursor::Restore);
         }
+
+        print!("{}{}  score: {}{}{}{}", style::Bold, color::Fg(color::Yellow), score, style::Reset, cursor::Restore, cursor::Down(1));
         println!("{}", &map);
-        println!("score: {}", score);
     }
     false
 }
 
 // Disable display coverage to avoid long tests
 #[cfg_attr(tarpaulin, skip)]
-fn cell_formatter(value: Option<&isize>) -> char {
+fn cell_formatter(f: &mut Formatter<'_>, value: Option<&isize>) -> Result<(), Error> {
     match value {
-        Some(0) => ' ',
-        Some(1) => '█',
-        Some(2) => '#',
-        Some(3) => '▂',
-        Some(4) => '*',
-        _ => ' ',
+        Some(0) => write!(f, "  "),
+        Some(1) => write!(f, "{}██{}", color::Fg(color::Black), color::Fg(color::Reset)),
+        Some(2) => write!(f, "{}◀▶{}", color::Fg(color::LightRed), color::Fg(color::Reset)),
+        Some(3) => write!(f, "{}▂▂{}", color::Fg(color::LightYellow), color::Fg(color::Reset)),
+        Some(4) => write!(f, "⚾"),
+        _ => write!(f, "  "),
     }
+}
+
+// Disable display coverage to avoid long tests
+#[cfg_attr(tarpaulin, skip)]
+fn newline_formatter(f: &mut Formatter<'_>, width: usize) -> Result<(), Error> {
+    write!(f, "{}{}", cursor::Left((1 + width as u16) * 2), cursor::Down(1))
 }
 
 #[cfg(test)]
