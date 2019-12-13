@@ -3,9 +3,9 @@ use crate::advent::geometry::Point;
 use crate::advent::geometry::ORIGIN;
 use crate::advent::intcode::Program;
 use crate::advent::intcode::ProgramState;
-use std::fmt::Formatter;
 use std::fmt::Error;
-use termion::{color, style, cursor};
+use std::fmt::Formatter;
+use termion::{color, cursor, style};
 
 const SCORE_FLAG: Point = Point { x: -1, y: 0 };
 
@@ -59,12 +59,27 @@ fn display_game(display: bool, map: &Map<isize>, score: isize, first_display: bo
             let term_height = term_size.map(|(_, h)| h - 2).unwrap();
             let term_width = term_size.map(|(w, _)| w - 2).unwrap();
             print!("{}", termion::clear::All);
-            print!("{}{}", cursor::Goto((term_width - map.width() as u16 * 2) / 2, (term_height - map.height() as u16) / 2), cursor::Save);
+            print!(
+                "{}{}",
+                cursor::Goto(
+                    (term_width - map.width() as u16 * 2) / 2,
+                    (term_height - map.height() as u16) / 2
+                ),
+                cursor::Save
+            );
         } else {
             print!("{}", cursor::Restore);
         }
 
-        print!("{}{}  score: {}{}{}{}", style::Bold, color::Fg(color::Yellow), score, style::Reset, cursor::Restore, cursor::Down(1));
+        print!(
+            "{}{}  score: {}{}{}{}",
+            style::Bold,
+            color::Fg(color::Yellow),
+            score,
+            style::Reset,
+            cursor::Restore,
+            cursor::Down(1)
+        );
         println!("{}", &map);
     }
     false
@@ -75,9 +90,24 @@ fn display_game(display: bool, map: &Map<isize>, score: isize, first_display: bo
 fn cell_formatter(f: &mut Formatter<'_>, value: Option<&isize>) -> Result<(), Error> {
     match value {
         Some(0) => write!(f, "  "),
-        Some(1) => write!(f, "{}██{}", color::Fg(color::Black), color::Fg(color::Reset)),
-        Some(2) => write!(f, "{}◀▶{}", color::Fg(color::LightRed), color::Fg(color::Reset)),
-        Some(3) => write!(f, "{}▂▂{}", color::Fg(color::LightYellow), color::Fg(color::Reset)),
+        Some(1) => write!(
+            f,
+            "{}██{}",
+            color::Fg(color::Black),
+            color::Fg(color::Reset)
+        ),
+        Some(2) => write!(
+            f,
+            "{}◀▶{}",
+            color::Fg(color::LightRed),
+            color::Fg(color::Reset)
+        ),
+        Some(3) => write!(
+            f,
+            "{}▂▂{}",
+            color::Fg(color::LightYellow),
+            color::Fg(color::Reset)
+        ),
         Some(4) => write!(f, "⚾"),
         _ => write!(f, "  "),
     }
@@ -86,7 +116,12 @@ fn cell_formatter(f: &mut Formatter<'_>, value: Option<&isize>) -> Result<(), Er
 // Disable display coverage to avoid long tests
 #[cfg_attr(tarpaulin, skip)]
 fn newline_formatter(f: &mut Formatter<'_>, width: usize) -> Result<(), Error> {
-    write!(f, "{}{}", cursor::Left((1 + width as u16) * 2), cursor::Down(1))
+    write!(
+        f,
+        "{}{}",
+        cursor::Left((1 + width as u16) * 2),
+        cursor::Down(1)
+    )
 }
 
 #[cfg(test)]
