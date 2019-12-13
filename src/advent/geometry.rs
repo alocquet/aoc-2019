@@ -26,31 +26,41 @@ pub struct D3Point {
     pub z: isize,
 }
 
-#[derive(Default)]
+type ValueFormatter<T> = fn(Option<&T>) -> char;
+
 pub struct Map<T> {
     pub values: HashMap<Point, T>,
+    pub formatter: ValueFormatter<T>,
 }
 
-impl<T> Map<T> {}
+impl<T> Map<T> {
+    pub fn new(formatter: ValueFormatter<T>) -> Self {
+        Map {
+            values: HashMap::new(),
+            formatter,
+        }
+    }
+    pub fn height(&self) -> isize {
+        let points: Vec<Point> = self.values.keys().cloned().collect();
+        points.iter().max_by_key(|p| p.y).unwrap_or(&ORIGIN).y
+            - points.iter().min_by_key(|p| p.y).unwrap_or(&ORIGIN).y
+    }
+}
 
-impl Display for Map<bool> {
+impl<T> Display for Map<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let points: Vec<Point> = self.values.keys().cloned().collect();
-        let min_x = points.iter().min_by_key(|p| p.x).unwrap().x;
-        let max_x = points.iter().max_by_key(|p| p.x).unwrap().x;
-        let min_y = points.iter().min_by_key(|p| p.y).unwrap().y;
-        let max_y = points.iter().max_by_key(|p| p.y).unwrap().y;
+        let min_x = points.iter().min_by_key(|p| p.x).unwrap_or(&ORIGIN).x;
+        let max_x = points.iter().max_by_key(|p| p.x).unwrap_or(&ORIGIN).x;
+        let min_y = points.iter().min_by_key(|p| p.y).unwrap_or(&ORIGIN).y;
+        let max_y = points.iter().max_by_key(|p| p.y).unwrap_or(&ORIGIN).y;
 
         for y in min_y..=max_y {
             for x in min_x..=max_x {
                 write!(
                     f,
                     "{}",
-                    if *self.values.get(&Point::new(x, y)).unwrap_or(&false) {
-                        '#'
-                    } else {
-                        '.'
-                    }
+                    (self.formatter)(self.values.get(&Point::new(x, y)))
                 )?;
             }
             writeln!(f)?;

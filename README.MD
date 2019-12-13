@@ -7,6 +7,11 @@
 cargo test --release
 ```
 
+* Executer les tests ignorés car plus longs
+```
+cargo test --release -- --nocapture --ignored
+```
+
 * Formater
 ```
 cargo fmt
