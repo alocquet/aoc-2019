@@ -9,14 +9,7 @@ const SCORE_FLAG: Point = Point { x: -1, y: 0 };
 pub fn execute(mut input: Vec<isize>, display: bool) -> (usize, isize) {
     input[0] = 2; // 2 quarters
     let mut program = Program::new(input);
-    let mut map = Map::new(|value| match value {
-        Some(0) => ' ',
-        Some(1) => '█',
-        Some(2) => '#',
-        Some(3) => '▂',
-        Some(4) => '*',
-        _ => ' ',
-    });
+    let mut map = Map::new(cell_formatter);
     let mut ball = ORIGIN;
     let mut paddle = ORIGIN;
     let mut score = 0;
@@ -47,20 +40,38 @@ pub fn execute(mut input: Vec<isize>, display: bool) -> (usize, isize) {
             nb_blocks = Some(map.values.values().filter(|&&cell| cell == 2).count());
         }
         program.input.push_back(ball.x.cmp(&paddle.x) as isize);
-        if display {
-            if first_display {
-                first_display = false;
-            } else {
-                let mut t = term::stdout().expect("should have a term");
-                for _ in 0..map.height() + 3 {
-                    t.cursor_up().expect("should be ok");
-                }
-            }
-            println!("{}", &map);
-            println!("score: {}", score);
-        }
+        first_display = display_game(display, &map, score, first_display);
     }
     (nb_blocks.unwrap(), score)
+}
+
+// Disable display coverage to avoid long tests
+#[cfg_attr(tarpaulin, skip)]
+fn display_game(display: bool, map: &Map<isize>, score: isize, first_display: bool) -> bool {
+    if display {
+        if !first_display {
+            let mut t = term::stdout().expect("should have a term");
+            for _ in 0..map.height() + 3 {
+                t.cursor_up().expect("should be ok");
+            }
+        }
+        println!("{}", &map);
+        println!("score: {}", score);
+    }
+    false
+}
+
+// Disable display coverage to avoid long tests
+#[cfg_attr(tarpaulin, skip)]
+fn cell_formatter(value: Option<&isize>) -> char {
+    match value {
+        Some(0) => ' ',
+        Some(1) => '█',
+        Some(2) => '#',
+        Some(3) => '▂',
+        Some(4) => '*',
+        _ => ' ',
+    }
 }
 
 #[cfg(test)]
