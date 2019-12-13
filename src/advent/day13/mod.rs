@@ -23,7 +23,6 @@ pub fn execute(mut input: Vec<isize>, display: bool) -> (usize, isize) {
     let mut nb_blocks = None;
 
     let mut first_display = true;
-    let mut t = term::stdout().unwrap();
 
     while program.state != ProgramState::Halted {
         program.execute();
@@ -52,6 +51,7 @@ pub fn execute(mut input: Vec<isize>, display: bool) -> (usize, isize) {
             if first_display {
                 first_display = false;
             } else {
+                let mut t = term::stdout().expect("should have a term");
                 for _ in 0..map.height() + 3 {
                     t.cursor_up().expect("should be ok");
                 }
