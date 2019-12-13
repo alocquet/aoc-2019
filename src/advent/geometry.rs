@@ -26,24 +26,32 @@ pub struct D3Point {
     pub z: isize,
 }
 
-type ValueFormatter<T> = fn(Option<&T>) -> char;
+type ValueFormatter<T> = fn(&mut Formatter<'_>, Option<&T>) -> Result<(), Error>;
+type NewLineFormatter = fn(&mut Formatter<'_>, usize) -> Result<(), Error>;
 
 pub struct Map<T> {
     pub values: HashMap<Point, T>,
     pub formatter: ValueFormatter<T>,
+    pub nl_formatter: NewLineFormatter,
 }
 
 impl<T> Map<T> {
-    pub fn new(formatter: ValueFormatter<T>) -> Self {
+    pub fn new(formatter: ValueFormatter<T>, nl_formatter: NewLineFormatter) -> Self {
         Map {
             values: HashMap::new(),
             formatter,
+            nl_formatter,
         }
     }
-    pub fn height(&self) -> isize {
+    pub fn height(&self) -> usize {
         let points: Vec<Point> = self.values.keys().cloned().collect();
-        points.iter().max_by_key(|p| p.y).unwrap_or(&ORIGIN).y
-            - points.iter().min_by_key(|p| p.y).unwrap_or(&ORIGIN).y
+        (points.iter().max_by_key(|p| p.y).unwrap_or(&ORIGIN).y
+            - points.iter().min_by_key(|p| p.y).unwrap_or(&ORIGIN).y) as usize
+    }
+    pub fn width(&self) -> usize {
+        let points: Vec<Point> = self.values.keys().cloned().collect();
+        (points.iter().max_by_key(|p| p.x).unwrap_or(&ORIGIN).x
+            - points.iter().min_by_key(|p| p.x).unwrap_or(&ORIGIN).x) as usize
     }
 }
 
@@ -57,13 +65,9 @@ impl<T> Display for Map<T> {
 
         for y in min_y..=max_y {
             for x in min_x..=max_x {
-                write!(
-                    f,
-                    "{}",
-                    (self.formatter)(self.values.get(&Point::new(x, y)))
-                )?;
+                (self.formatter)(f, self.values.get(&Point::new(x, y)))?;
             }
-            writeln!(f)?;
+            (self.nl_formatter)(f, (max_x - min_x) as usize)?;
         }
         Ok(())
     }

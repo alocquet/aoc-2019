@@ -16,10 +16,19 @@ pub fn step2() -> String {
 }
 
 fn run_robot(first_value: bool) -> Map<bool> {
-    let mut map = Map::new(|value| match value.unwrap_or(&false) {
-        true => '#',
-        false => '.',
-    });
+    let mut map = Map::new(
+        |f, value| {
+            write!(
+                f,
+                "{}",
+                match value.unwrap_or(&false) {
+                    true => "#",
+                    false => ".",
+                }
+            )
+        },
+        |f, _| writeln!(f),
+    );
     let mut prog = Program::new(parse_input("11"));
     let mut current_point = ORIGIN;
     let mut current_direction = UP;

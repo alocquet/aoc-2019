@@ -1,5 +1,5 @@
 extern crate num;
-extern crate term;
+extern crate termion;
 
 use std::fs::File;
 use std::io::prelude::*;
