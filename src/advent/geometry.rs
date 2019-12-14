@@ -92,12 +92,6 @@ impl Point {
     }
 }
 
-impl D3Point {
-    pub fn new(x: isize, y: isize, z: isize) -> Self {
-        D3Point { x, y, z }
-    }
-}
-
 impl AddAssign for Point {
     fn add_assign(&mut self, other: Point) {
         *self = Point {
@@ -124,5 +118,19 @@ impl SubAssign for D3Point {
             y: self.y - other.y,
             z: self.z - other.z,
         };
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check_map_size() {
+        let mut map = Map::new(|_, _| Ok(()), |_, _| Ok(()));
+        map.values.insert(Point::new(0, 1), 1);
+        map.values.insert(Point::new(-1, -1), 1);
+        assert_eq!(map.height(), 2);
+        assert_eq!(map.width(), 1);
     }
 }
