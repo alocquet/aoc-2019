@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use std::fmt::Error;
 use std::fmt::Formatter;
+use std::ops::Add;
 use std::ops::AddAssign;
 use std::ops::SubAssign;
 
@@ -93,11 +94,22 @@ impl Point {
 }
 
 impl AddAssign for Point {
-    fn add_assign(&mut self, other: Point) {
-        *self = Point {
+    fn add_assign(&mut self, other: Self) {
+        *self = Self {
             x: self.x + other.x,
             y: self.y + other.y,
         };
+    }
+}
+
+impl Add for Point {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
     }
 }
 

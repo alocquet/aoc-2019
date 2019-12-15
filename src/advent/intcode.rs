@@ -1,14 +1,14 @@
 use std::collections::vec_deque::VecDeque;
 use std::collections::HashMap;
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub enum ProgramState {
     Running,
     Waiting,
     Halted,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Program {
     operations: HashMap<usize, isize>,
     idx: usize,
