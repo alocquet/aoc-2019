@@ -1,5 +1,3 @@
-extern crate digits_iterator;
-
 use digits_iterator::*;
 
 pub fn step1() -> usize {

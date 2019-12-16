@@ -1,3 +1,4 @@
+extern crate digits_iterator;
 extern crate num;
 extern crate termion;
 
