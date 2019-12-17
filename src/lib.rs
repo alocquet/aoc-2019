@@ -1,5 +1,6 @@
 extern crate digits_iterator;
 extern crate num;
+extern crate regex;
 extern crate termion;
 
 use std::fs::File;
