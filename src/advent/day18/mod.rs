@@ -2,8 +2,11 @@ use std::collections::HashMap;
 use std::collections::vec_deque::VecDeque;
 use std::ops::Add;
 use std::ops::AddAssign;
+use indexmap::IndexMap;
 
 use crate::read_file;
+use std::hash::Hash;
+use std::hash::Hasher;
 
 pub const UP: I8Point = I8Point { x: 0, y: -1 };
 pub const DOWN: I8Point = I8Point { x: 0, y: 1 };
@@ -96,11 +99,24 @@ impl Add for I8Point {
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Clone)]
+#[derive(Clone)]
 struct States {
     positions: [I8Point; 4],
     keys: Vec<char>,
     bot: Option<u8>,
+}
+impl PartialEq for States {
+    fn eq(&self, other: &States) -> bool {
+        self.positions.eq(&other.positions) && self.keys.eq(&other.keys)
+    }
+}
+impl Eq for States {
+}
+impl Hash for States {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.positions.hash(state);
+        self.keys.hash(state);
+    }
 }
 
 fn step2(map: HashMap<I8Point, char>) -> Option<usize> {
@@ -109,7 +125,7 @@ fn step2(map: HashMap<I8Point, char>) -> Option<usize> {
     let start = States { positions: start_positions, keys: vec!(), bot: None };
     let nb_keys = map.iter().filter(|&(_, &v)| is_key(v)).count();
 
-    let mut paths = HashMap::new();
+    let mut paths = IndexMap::new();
     paths.insert(start.clone(), 0usize);
 
     let mut queue = VecDeque::new();

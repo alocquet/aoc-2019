@@ -2,6 +2,7 @@ extern crate digits_iterator;
 extern crate num;
 extern crate regex;
 extern crate termion;
+extern crate indexmap;
 
 use std::fs::File;
 use std::io::prelude::*;
