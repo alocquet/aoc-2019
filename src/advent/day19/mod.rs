@@ -2,7 +2,7 @@ use crate::advent::geometry::Map;
 use crate::advent::geometry::Point;
 use crate::advent::intcode::Program;
 
-pub fn build_map(input: Vec<isize>) -> Map<bool> {
+pub fn step1(input: Vec<isize>, offset: Point, size: isize) -> usize {
     let program = Program::new(input);
     let mut map = Map::new(
         |f, value| {
@@ -17,10 +17,8 @@ pub fn build_map(input: Vec<isize>) -> Map<bool> {
         },
         |f, _| writeln!(f),
     );
-    //for x in 400..400+100 {
-    //for y in 450..450+100 {
-    for x in 0..50 {
-        for y in 0..50 {
+    for x in (offset.x)..(offset.x + size) {
+        for y in (offset.y)..(offset.y + size) {
             let mut program = program.clone();
             program.input.push_back(x as isize);
             program.input.push_back(y as isize);
@@ -29,22 +27,26 @@ pub fn build_map(input: Vec<isize>) -> Map<bool> {
                 .insert(Point::new(x, y), program.output.pop_front().unwrap() == 1);
         }
     }
-    map
-}
-
-pub fn step1(map: Map<bool>) -> usize {
     println!("{}", &map);
     map.values.iter().filter(|&(_, &v)| v).count()
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::advent::geometry::ORIGIN;
     use crate::advent::intcode::parse_input;
 
     use super::*;
 
     #[test]
     fn check_step1() {
-        assert_eq!(step1(build_map(parse_input("19"))), 215);
+        assert_eq!(step1(parse_input("19"), ORIGIN, 50), 215);
+    }
+
+    #[test]
+    #[ignore]
+    fn check_step2() {
+        // Ok, j'ai un peu sheaté : pour obtenir, l'offset, j'ai fait à tatons
+        assert_eq!(step1(parse_input("19"), Point::new(772, 975), 100), 10_000);
     }
 }
