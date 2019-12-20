@@ -30,18 +30,48 @@ pub struct D3Point {
 type ValueFormatter<T> = fn(&mut Formatter<'_>, Option<&T>) -> Result<(), Error>;
 type NewLineFormatter = fn(&mut Formatter<'_>, usize) -> Result<(), Error>;
 
-pub struct Map<T> {
+pub fn default_value_formatter<T>() -> ValueFormatter<T>
+where
+    T: Display,
+{
+    |f, v| write!(f, "{}", v.unwrap())
+}
+
+pub fn default_nl_formatter() -> NewLineFormatter {
+    |f, _| writeln!(f)
+}
+
+pub struct Map<T>
+where
+    T: Display,
+{
     pub values: HashMap<Point, T>,
     pub formatter: ValueFormatter<T>,
     pub nl_formatter: NewLineFormatter,
+    default_value: T,
 }
 
-impl<T> Map<T> {
+impl<T> Map<T>
+where
+    T: Display + Default,
+{
     pub fn new(formatter: ValueFormatter<T>, nl_formatter: NewLineFormatter) -> Self {
         Map {
             values: HashMap::new(),
             formatter,
             nl_formatter,
+            default_value: T::default(),
+        }
+    }
+    pub fn with_default_formatters(default_value: T) -> Self
+    where
+        T: Clone,
+    {
+        Map {
+            values: HashMap::new(),
+            formatter: default_value_formatter::<T>(),
+            nl_formatter: default_nl_formatter(),
+            default_value,
         }
     }
     pub fn height(&self) -> usize {
@@ -56,7 +86,10 @@ impl<T> Map<T> {
     }
 }
 
-impl<T> Display for Map<T> {
+impl<T> Display for Map<T>
+where
+    T: Display,
+{
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let points: Vec<Point> = self.values.keys().cloned().collect();
         let min_x = points.iter().min_by_key(|p| p.x).unwrap_or(&ORIGIN).x;
@@ -66,7 +99,12 @@ impl<T> Display for Map<T> {
 
         for y in min_y..=max_y {
             for x in min_x..=max_x {
-                (self.formatter)(f, self.values.get(&Point::new(x, y)))?;
+                (self.formatter)(
+                    f,
+                    self.values
+                        .get(&Point::new(x, y))
+                        .or(Some(&self.default_value)),
+                )?;
             }
             (self.nl_formatter)(f, (max_x - min_x) as usize)?;
         }
