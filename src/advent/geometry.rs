@@ -84,6 +84,24 @@ where
         (points.iter().max_by_key(|p| p.x).unwrap_or(&ORIGIN).x
             - points.iter().min_by_key(|p| p.x).unwrap_or(&ORIGIN).x) as usize
     }
+    pub fn find(&self, value: T) -> Option<Point>
+    where
+        T: PartialEq,
+    {
+        self.values
+            .iter()
+            .find(|&(_, val)| *val == value)
+            .map(|(&pos, _)| pos)
+    }
+    pub fn find_with(&self, predicate: &dyn Fn(&Point, &T) -> bool) -> Option<Point>
+    where
+        T: PartialEq,
+    {
+        self.values
+            .iter()
+            .find(|&(p, v)| predicate(p, v))
+            .map(|(&pos, _)| pos)
+    }
 }
 
 impl<T> Display for Map<T>

@@ -11,43 +11,10 @@ use crate::advent::geometry::UP;
 #[allow(clippy::map_entry)]
 pub fn step1(input: String) -> Option<usize> {
     let input = parse_input(input);
-    let mut raw_map = Map::with_default_formatters('?');
+    let raw_map = parse_raw_map(input);
+    let map = parse_map(&raw_map);
 
-    for (y, line) in input.iter().enumerate() {
-        for (x, value) in line.iter().enumerate() {
-            let position = Point::new(x as isize, y as isize);
-            raw_map.values.insert(position, *value);
-        }
-    }
-
-    let mut map = Map::with_default_formatters(" ".to_string());
-    for (&position, value) in &raw_map.values {
-        if *value == '.' || *value == '#' {
-            map.values.insert(position, format!("{}", value));
-        } else if value.is_alphabetic() {
-            let up = raw_map.values.get(&(position + UP));
-            let down = raw_map.values.get(&(position + DOWN));
-            let left = raw_map.values.get(&(position + LEFT));
-            let right = raw_map.values.get(&(position + RIGHT));
-
-            if let Some(neightboor_value) = match (up, down, left, right) {
-                (Some(c), Some('.'), _, _) if c.is_alphabetic() => Some(format!("{}{}", c, value)),
-                (Some('.'), Some(c), _, _) if c.is_alphabetic() => Some(format!("{}{}", value, c)),
-                (_, _, Some(c), Some('.')) if c.is_alphabetic() => Some(format!("{}{}", c, value)),
-                (_, _, Some('.'), Some(c)) if c.is_alphabetic() => Some(format!("{}{}", value, c)),
-                _ => None,
-            } {
-                map.values.insert(position, neightboor_value);
-            }
-        }
-    }
-
-    let start = map
-        .values
-        .iter()
-        .find(|&(_, val)| val == "AA")
-        .map(|(&pos, _)| pos)
-        .unwrap();
+    let start = map.find("AA".to_string()).unwrap();
     let mut queue = VecDeque::new();
     let mut visited = HashMap::new();
 
@@ -95,44 +62,11 @@ struct State {
 #[allow(clippy::map_entry)]
 pub fn step2(input: String) -> Option<usize> {
     let input = parse_input(input);
-    let mut raw_map = Map::with_default_formatters('?');
-
-    for (y, line) in input.iter().enumerate() {
-        for (x, value) in line.iter().enumerate() {
-            let position = Point::new(x as isize, y as isize);
-            raw_map.values.insert(position, *value);
-        }
-    }
-
-    let mut map = Map::with_default_formatters(" ".to_string());
-    for (&position, value) in &raw_map.values {
-        if *value == '.' || *value == '#' {
-            map.values.insert(position, format!("{}", value));
-        } else if value.is_alphabetic() {
-            let up = raw_map.values.get(&(position + UP));
-            let down = raw_map.values.get(&(position + DOWN));
-            let left = raw_map.values.get(&(position + LEFT));
-            let right = raw_map.values.get(&(position + RIGHT));
-
-            if let Some(neightboor_value) = match (up, down, left, right) {
-                (Some(c), Some('.'), _, _) if c.is_alphabetic() => Some(format!("{}{}", c, value)),
-                (Some('.'), Some(c), _, _) if c.is_alphabetic() => Some(format!("{}{}", value, c)),
-                (_, _, Some(c), Some('.')) if c.is_alphabetic() => Some(format!("{}{}", c, value)),
-                (_, _, Some('.'), Some(c)) if c.is_alphabetic() => Some(format!("{}{}", value, c)),
-                _ => None,
-            } {
-                map.values.insert(position, neightboor_value);
-            }
-        }
-    }
+    let raw_map = parse_raw_map(input);
+    let map = parse_map(&raw_map);
 
     let start = State {
-        position: map
-            .values
-            .iter()
-            .find(|&(_, val)| val == "AA")
-            .map(|(&pos, _)| pos)
-            .unwrap(),
+        position: map.find("AA".to_string()).unwrap(),
         level: 0,
     };
     let mut queue = VecDeque::new();
@@ -164,10 +98,7 @@ pub fn step2(input: String) -> Option<usize> {
                 // try to pass a gate
                 if neightboor_value != "." {
                     let other_gate = map
-                        .values
-                        .iter()
-                        .find(|(pos, val)| *val == neightboor_value && neightboor_pos != **pos)
-                        .map(|(&pos, _)| pos)
+                        .find_with(&|pos, val| val == neightboor_value && neightboor_pos != *pos)
                         .unwrap();
                     let next_level = if neightboor_pos.x < 5
                         || neightboor_pos.y < 5
@@ -201,6 +132,42 @@ fn parse_input(input: String) -> Vec<Vec<char>> {
         .lines()
         .map(|l| l.chars().collect::<Vec<char>>())
         .collect()
+}
+
+fn parse_map(raw_map: &Map<char>) -> Map<String> {
+    let mut map = Map::with_default_formatters(" ".to_string());
+    for (&position, value) in &raw_map.values {
+        if *value == '.' || *value == '#' {
+            map.values.insert(position, format!("{}", value));
+        } else if value.is_alphabetic() {
+            let up = raw_map.values.get(&(position + UP));
+            let down = raw_map.values.get(&(position + DOWN));
+            let left = raw_map.values.get(&(position + LEFT));
+            let right = raw_map.values.get(&(position + RIGHT));
+
+            if let Some(neightboor_value) = match (up, down, left, right) {
+                (Some(c), Some('.'), _, _) if c.is_alphabetic() => Some(format!("{}{}", c, value)),
+                (Some('.'), Some(c), _, _) if c.is_alphabetic() => Some(format!("{}{}", value, c)),
+                (_, _, Some(c), Some('.')) if c.is_alphabetic() => Some(format!("{}{}", c, value)),
+                (_, _, Some('.'), Some(c)) if c.is_alphabetic() => Some(format!("{}{}", value, c)),
+                _ => None,
+            } {
+                map.values.insert(position, neightboor_value);
+            }
+        }
+    }
+    map
+}
+
+fn parse_raw_map(input: Vec<Vec<char>>) -> Map<char> {
+    let mut raw_map = Map::with_default_formatters('?');
+    for (y, line) in input.iter().enumerate() {
+        for (x, value) in line.iter().enumerate() {
+            let position = Point::new(x as isize, y as isize);
+            raw_map.values.insert(position, *value);
+        }
+    }
+    raw_map
 }
 
 #[cfg(test)]
