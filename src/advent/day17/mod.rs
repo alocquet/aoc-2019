@@ -26,7 +26,7 @@ pub fn execute(input: Vec<isize>) -> Result<(isize, isize), &'static str> {
         .sum();
 
     // Execute step 2
-    let mut input = input.clone();
+    let mut input = input;
     input[0] = 2;
     let mut program = Program::new(input);
 
