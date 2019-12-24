@@ -1,4 +1,5 @@
 extern crate digits_iterator;
+extern crate mod_exp;
 extern crate num;
 extern crate regex;
 extern crate termion;

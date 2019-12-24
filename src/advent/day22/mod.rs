@@ -2,8 +2,15 @@ use std::fmt::Debug;
 
 use crate::read_file;
 
+#[derive(Clone)]
+struct State {
+    increment: i128,
+    offset: i128,
+}
+
 trait Operation: Debug {
     fn execute(&self, deck: &[usize]) -> Vec<usize>;
+    fn execute_step2(&self, state: State, nb_cards: i128) -> State;
 }
 
 #[derive(Debug)]
@@ -25,6 +32,13 @@ impl Operation for DealNewStack {
         res.reverse();
         res
     }
+
+    fn execute_step2(&self, state: State, nb_cards: i128) -> State {
+        State {
+            increment: -state.increment % nb_cards,
+            offset: (state.offset - state.increment % nb_cards) % nb_cards,
+        }
+    }
 }
 
 impl Operation for Deal {
@@ -34,6 +48,14 @@ impl Operation for Deal {
             result[(idx * self.increment) % deck.len()] = card;
         }
         result
+    }
+
+    fn execute_step2(&self, state: State, nb_cards: i128) -> State {
+        State {
+            increment: (state.increment * modular_inverse(self.increment as i128, nb_cards))
+                % nb_cards,
+            offset: state.offset,
+        }
     }
 }
 
@@ -51,6 +73,13 @@ impl Operation for Cut {
             .take(deck.len())
             .cloned()
             .collect()
+    }
+
+    fn execute_step2(&self, state: State, nb_cards: i128) -> State {
+        State {
+            increment: state.increment,
+            offset: (state.offset + self.position as i128 * state.increment) % nb_cards,
+        }
     }
 }
 
@@ -90,6 +119,30 @@ pub fn step1() -> usize {
         .find(|&(_, &deck)| deck == 2019)
         .map(|(idx, _)| idx)
         .unwrap()
+}
+
+fn modular_inverse(n: i128, nb_cards: i128) -> i128 {
+    mod_exp::mod_exp(n, nb_cards - 2, nb_cards)
+}
+
+pub fn step2() -> i128 {
+    let operations = parse_input(read_file("src/advent/day22/input.txt"));
+    let nb_cards = 119_315_717_514_047i128;
+    let times = 101_741_582_076_661i128;
+
+    // Convert the whole process to a linear equation: ax + b
+    let state = operations.iter().fold(
+        State {
+            increment: 1,
+            offset: 0,
+        },
+        |state, operation| operation.execute_step2(state, nb_cards),
+    );
+
+    let increment = mod_exp::mod_exp(state.increment, times, nb_cards);
+    let offset = state.offset
+        * ((1 - increment) * modular_inverse(1 - state.increment, nb_cards) % nb_cards);
+    nb_cards + (2020 * increment + offset) % nb_cards
 }
 
 #[cfg(test)]
@@ -150,5 +203,10 @@ cut -1"#;
     #[test]
     fn check_step1() {
         assert_eq!(step1(), 1867);
+    }
+
+    #[test]
+    fn check_step2() {
+        assert_eq!(step2(), 71047285772808);
     }
 }
