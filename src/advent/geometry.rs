@@ -41,6 +41,7 @@ pub fn default_nl_formatter() -> NewLineFormatter {
     |f, _| writeln!(f)
 }
 
+#[derive(Clone)]
 pub struct Map<T>
 where
     T: Display,
@@ -146,6 +147,9 @@ impl Point {
         } else {
             Point::new(self.y, -self.x)
         }
+    }
+    pub fn is_in(&self, start: Point, end: Point) -> bool {
+        self.x >= start.x && self.x <= end.x && self.y >= start.y && self.y <= end.y
     }
 }
 
