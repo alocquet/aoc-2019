@@ -32,8 +32,8 @@ type ValueFormatter<T> = fn(&mut Formatter<'_>, Option<&T>) -> Result<(), Error>
 type NewLineFormatter = fn(&mut Formatter<'_>, usize) -> Result<(), Error>;
 
 pub fn default_value_formatter<T>() -> ValueFormatter<T>
-    where
-        T: Display,
+where
+    T: Display,
 {
     |f, v| write!(f, "{}", v.unwrap())
 }
@@ -44,8 +44,8 @@ pub fn default_nl_formatter() -> NewLineFormatter {
 
 #[derive(Clone)]
 pub struct Map<T>
-    where
-        T: Display,
+where
+    T: Display,
 {
     pub values: HashMap<Point, T>,
     pub formatter: ValueFormatter<T>,
@@ -54,8 +54,8 @@ pub struct Map<T>
 }
 
 impl<T> Map<T>
-    where
-        T: Display + Default,
+where
+    T: Display + Default,
 {
     pub fn new(formatter: ValueFormatter<T>, nl_formatter: NewLineFormatter) -> Self {
         Map {
@@ -66,8 +66,8 @@ impl<T> Map<T>
         }
     }
     pub fn with_default_formatters(default_value: T) -> Self
-        where
-            T: Clone,
+    where
+        T: Clone,
     {
         Map {
             values: HashMap::new(),
@@ -87,8 +87,8 @@ impl<T> Map<T>
             - points.iter().min_by_key(|p| p.x).unwrap_or(&ORIGIN).x) as usize
     }
     pub fn find(&self, value: T) -> Option<Point>
-        where
-            T: PartialEq,
+    where
+        T: PartialEq,
     {
         self.values
             .iter()
@@ -96,8 +96,8 @@ impl<T> Map<T>
             .map(|(&pos, _)| pos)
     }
     pub fn find_with(&self, predicate: &dyn Fn(&Point, &T) -> bool) -> Option<Point>
-        where
-            T: PartialEq,
+    where
+        T: PartialEq,
     {
         self.values
             .iter()
@@ -107,8 +107,8 @@ impl<T> Map<T>
 }
 
 impl<T> Display for Map<T>
-    where
-        T: Display,
+where
+    T: Display,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let points: Vec<Point> = self.values.keys().cloned().collect();
