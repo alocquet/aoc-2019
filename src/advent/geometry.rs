@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::fmt::Error;
@@ -41,6 +42,7 @@ pub fn default_nl_formatter() -> NewLineFormatter {
     |f, _| writeln!(f)
 }
 
+#[derive(Clone)]
 pub struct Map<T>
 where
     T: Display,
@@ -147,6 +149,9 @@ impl Point {
             Point::new(self.y, -self.x)
         }
     }
+    pub fn is_in(&self, start: Point, end: Point) -> bool {
+        self.x >= start.x && self.x <= end.x && self.y >= start.y && self.y <= end.y
+    }
 }
 
 impl AddAssign for Point {
@@ -166,6 +171,26 @@ impl Add for Point {
             x: self.x + other.x,
             y: self.y + other.y,
         }
+    }
+}
+
+impl PartialOrd for Point {
+    fn partial_cmp(&self, other: &Point) -> Option<Ordering> {
+        let partial_cmp_other_y = self.y.partial_cmp(&other.y);
+        if let Some(cmp_other_y) = partial_cmp_other_y {
+            if cmp_other_y == Ordering::Equal {
+                return self.x.partial_cmp(&other.x);
+            } else {
+                return partial_cmp_other_y;
+            }
+        }
+        None
+    }
+}
+
+impl Ord for Point {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
     }
 }
 
