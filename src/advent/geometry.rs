@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::fmt::Error;
@@ -31,8 +32,8 @@ type ValueFormatter<T> = fn(&mut Formatter<'_>, Option<&T>) -> Result<(), Error>
 type NewLineFormatter = fn(&mut Formatter<'_>, usize) -> Result<(), Error>;
 
 pub fn default_value_formatter<T>() -> ValueFormatter<T>
-where
-    T: Display,
+    where
+        T: Display,
 {
     |f, v| write!(f, "{}", v.unwrap())
 }
@@ -43,8 +44,8 @@ pub fn default_nl_formatter() -> NewLineFormatter {
 
 #[derive(Clone)]
 pub struct Map<T>
-where
-    T: Display,
+    where
+        T: Display,
 {
     pub values: HashMap<Point, T>,
     pub formatter: ValueFormatter<T>,
@@ -53,8 +54,8 @@ where
 }
 
 impl<T> Map<T>
-where
-    T: Display + Default,
+    where
+        T: Display + Default,
 {
     pub fn new(formatter: ValueFormatter<T>, nl_formatter: NewLineFormatter) -> Self {
         Map {
@@ -65,8 +66,8 @@ where
         }
     }
     pub fn with_default_formatters(default_value: T) -> Self
-    where
-        T: Clone,
+        where
+            T: Clone,
     {
         Map {
             values: HashMap::new(),
@@ -86,8 +87,8 @@ where
             - points.iter().min_by_key(|p| p.x).unwrap_or(&ORIGIN).x) as usize
     }
     pub fn find(&self, value: T) -> Option<Point>
-    where
-        T: PartialEq,
+        where
+            T: PartialEq,
     {
         self.values
             .iter()
@@ -95,8 +96,8 @@ where
             .map(|(&pos, _)| pos)
     }
     pub fn find_with(&self, predicate: &dyn Fn(&Point, &T) -> bool) -> Option<Point>
-    where
-        T: PartialEq,
+        where
+            T: PartialEq,
     {
         self.values
             .iter()
@@ -106,8 +107,8 @@ where
 }
 
 impl<T> Display for Map<T>
-where
-    T: Display,
+    where
+        T: Display,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let points: Vec<Point> = self.values.keys().cloned().collect();
@@ -170,6 +171,26 @@ impl Add for Point {
             x: self.x + other.x,
             y: self.y + other.y,
         }
+    }
+}
+
+impl PartialOrd for Point {
+    fn partial_cmp(&self, other: &Point) -> Option<Ordering> {
+        let partial_cmp_other_y = self.y.partial_cmp(&other.y);
+        if let Some(cmp_other_y) = partial_cmp_other_y {
+            if cmp_other_y == Ordering::Equal {
+                return self.x.partial_cmp(&other.x);
+            } else {
+                return partial_cmp_other_y;
+            }
+        }
+        None
+    }
+}
+
+impl Ord for Point {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
     }
 }
 

@@ -1,18 +1,16 @@
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 
-use crate::advent::geometry::Point;
 use crate::advent::geometry::DOWN;
 use crate::advent::geometry::LEFT;
 use crate::advent::geometry::ORIGIN;
+use crate::advent::geometry::Point;
 use crate::advent::geometry::RIGHT;
 use crate::advent::geometry::UP;
 use crate::read_file;
 
-type BugsMap = [[bool; 5]; 5];
-
 pub fn step1() -> usize {
     let mut map = parse_input(read_file("src/advent/day24/input.txt"));
-    let mut already_seen = HashSet::new();
+    let mut already_seen = BTreeSet::new();
     already_seen.insert(map.clone());
 
     loop {
@@ -24,29 +22,27 @@ pub fn step1() -> usize {
     }
 }
 
-fn execute(input: &BugsMap) -> BugsMap {
-    let limit = Point::new(4, 4);
-    let mut next = *input;
+fn execute(input: &BTreeSet<Point>) -> BTreeSet<Point> {
+    let mut next = BTreeSet::new();
 
     for x in 0..5 {
         for y in 0..5 {
             let position = Point::new(x, y);
-            let adjacents: Vec<Point> = [UP, DOWN, LEFT, RIGHT]
-                .iter()
-                .map(|&dir| position + dir)
-                .filter(|adjacent| adjacent.is_in(ORIGIN, limit))
-                .collect();
+            let adjacents = get_adjacents(position);
             let adjacent_bugs = adjacents
                 .iter()
-                .filter(|&adjacent| input[adjacent.x as usize][adjacent.y as usize])
+                .filter(|&adjacent| input.contains(adjacent))
                 .count();
-            if input[position.x as usize][position.y as usize] {
+            if input.contains(&position) {
                 // A bug dies (becoming an empty space) unless there is exactly one bug adjacent to it.
-                next[position.x as usize][position.y as usize] = adjacent_bugs == 1;
+                if adjacent_bugs == 1 {
+                    next.insert(position);
+                }
             } else {
                 // An empty space becomes infested with a bug if exactly one or two bugs are adjacent to it.
-                next[position.x as usize][position.y as usize] =
-                    adjacent_bugs == 1 || adjacent_bugs == 2;
+                if adjacent_bugs == 1 || adjacent_bugs == 2 {
+                    next.insert(position);
+                }
             }
         }
     }
@@ -54,27 +50,31 @@ fn execute(input: &BugsMap) -> BugsMap {
     next
 }
 
-fn parse_input(input: String) -> BugsMap {
-    let mut result = [[false; 5]; 5];
+const LIMIT: Point = Point { x: 4, y: 4 };
+
+fn get_adjacents(position: Point) -> Vec<Point>{
+    [UP, DOWN, LEFT, RIGHT]
+        .iter()
+        .map(|&dir| position + dir)
+        .filter(|adjacent| adjacent.is_in(ORIGIN, LIMIT))
+        .collect()
+}
+
+fn parse_input(input: String) -> BTreeSet<Point> {
+    let mut result = BTreeSet::new();
     input.lines().enumerate().for_each(|(y, line)| {
         line.chars()
             .enumerate()
-            .for_each(|(x, value)| result[y][x] = value == '#')
+            .for_each(|(x, value)| { if value == '#' { result.insert(Point::new(x as isize, y as isize)); } })
     });
 
     result
 }
 
-fn biodiversity_rating(map: BugsMap) -> usize {
-    let mut result = 0;
-    for (x, line) in map.iter().enumerate() {
-        for (y, bug) in line.iter().enumerate() {
-            if *bug {
-                result += 2usize.pow(y as u32 + x as u32 * 5);
-            }
-        }
-    }
-    result
+fn biodiversity_rating(map: BTreeSet<Point>) -> usize {
+    map.iter().fold(0, |sum, bug| {
+        return sum + 2usize.pow(bug.x as u32 + bug.y as u32 * 5);
+    })
 }
 
 #[cfg(test)]
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn check_one_execution() {
-        assert_eq!(
+        assert_eq!(biodiversity_rating(
             execute(&parse_input(
                 r#"....#
 #..#.
@@ -91,29 +91,16 @@ mod tests {
 ..#..
 #...."#
                     .to_string()
-            )),
-            [
-                [true, false, false, true, false],
-                [true, true, true, true, false],
-                [true, true, true, false, true],
-                [true, true, false, true, true],
-                [false, true, true, false, false]
-            ]
+            ))), 7200233
         );
     }
 
     #[test]
     fn test_biodiversity_rating() {
-        assert_eq!(
-            biodiversity_rating([
-                [false, false, false, false, false],
-                [false, false, false, false, false],
-                [false, false, false, false, false],
-                [true, false, false, false, false],
-                [false, true, false, false, false]
-            ]),
-            2129920
-        );
+        let mut map = BTreeSet::new();
+        map.insert(Point::new(0,3));
+        map.insert(Point::new(1,4));
+        assert_eq!(biodiversity_rating(map), 2129920);
     }
 
     #[test]
