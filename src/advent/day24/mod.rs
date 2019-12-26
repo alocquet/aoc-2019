@@ -14,7 +14,7 @@ pub fn step1() -> usize {
     already_seen.insert(map.clone());
 
     loop {
-        map = execute(&map);
+        map = execute(&map, &get_adjacents_step1);
         if already_seen.contains(&map) {
             return biodiversity_rating(map);
         }
@@ -22,26 +22,30 @@ pub fn step1() -> usize {
     }
 }
 
-fn execute(input: &BTreeSet<Point>) -> BTreeSet<Point> {
+fn get_adjacents_step1(position: Point) -> Vec<Point> {
+    [UP, DOWN, LEFT, RIGHT]
+        .iter()
+        .map(|&dir| position + dir)
+        .filter(|adjacent| adjacent.is_in(ORIGIN, LIMIT))
+        .collect()
+}
+
+fn execute(input: &BTreeSet<Point>, get_adjacents: &dyn Fn(Point) -> Vec<Point>) -> BTreeSet<Point> {
     let mut next = BTreeSet::new();
 
-    for x in 0..5 {
-        for y in 0..5 {
-            let position = Point::new(x, y);
-            let adjacents = get_adjacents(position);
-            let adjacent_bugs = adjacents
-                .iter()
-                .filter(|&adjacent| input.contains(adjacent))
-                .count();
-            if input.contains(&position) {
-                // A bug dies (becoming an empty space) unless there is exactly one bug adjacent to it.
-                if adjacent_bugs == 1 {
-                    next.insert(position);
-                }
-            } else {
-                // An empty space becomes infested with a bug if exactly one or two bugs are adjacent to it.
-                if adjacent_bugs == 1 || adjacent_bugs == 2 {
-                    next.insert(position);
+
+    for bug in input.iter() {
+        let adjacents = get_adjacents(*bug);
+        let adjacent_bugs = adjacents.iter().filter(|&adjacent| input.contains(adjacent)).count();
+        if adjacent_bugs == 1 {
+            next.insert(*bug);
+        }
+        for adjacent in adjacents {
+            if !input.contains(&adjacent) {
+                let adj_adjacents = get_adjacents(adjacent);
+                let adj_adjacent_bugs = adj_adjacents.iter().filter(|&adj_adjacent| input.contains(adj_adjacent)).count();
+                if adj_adjacent_bugs == 1 || adj_adjacent_bugs == 2 {
+                    next.insert(adjacent);
                 }
             }
         }
@@ -51,14 +55,6 @@ fn execute(input: &BTreeSet<Point>) -> BTreeSet<Point> {
 }
 
 const LIMIT: Point = Point { x: 4, y: 4 };
-
-fn get_adjacents(position: Point) -> Vec<Point>{
-    [UP, DOWN, LEFT, RIGHT]
-        .iter()
-        .map(|&dir| position + dir)
-        .filter(|adjacent| adjacent.is_in(ORIGIN, LIMIT))
-        .collect()
-}
 
 fn parse_input(input: String) -> BTreeSet<Point> {
     let mut result = BTreeSet::new();
@@ -91,15 +87,15 @@ mod tests {
 ..#..
 #...."#
                     .to_string()
-            ))), 7200233
+            ), &get_adjacents_step1)), 7200233
         );
     }
 
     #[test]
     fn test_biodiversity_rating() {
         let mut map = BTreeSet::new();
-        map.insert(Point::new(0,3));
-        map.insert(Point::new(1,4));
+        map.insert(Point::new(0, 3));
+        map.insert(Point::new(1, 4));
         assert_eq!(biodiversity_rating(map), 2129920);
     }
 
