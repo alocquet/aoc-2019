@@ -8,6 +8,12 @@ use crate::advent::geometry::RIGHT;
 use crate::advent::geometry::UP;
 use crate::read_file;
 
+#[derive(Clone, Copy, Ord, PartialOrd, Eq, PartialEq)]
+struct LPoint {
+    p: Point,
+    l: usize,
+}
+
 pub fn step1() -> usize {
     let mut map = parse_input(read_file("src/advent/day24/input.txt"));
     let mut already_seen = BTreeSet::new();
@@ -22,15 +28,15 @@ pub fn step1() -> usize {
     }
 }
 
-fn get_adjacents_step1(position: Point) -> Vec<Point> {
+fn get_adjacents_step1(position: LPoint) -> Vec<LPoint> {
     [UP, DOWN, LEFT, RIGHT]
         .iter()
-        .map(|&dir| position + dir)
-        .filter(|adjacent| adjacent.is_in(ORIGIN, LIMIT))
+        .map(|&dir| LPoint { p: position.p + dir, l: position.l })
+        .filter(|adjacent| adjacent.p.is_in(ORIGIN, LIMIT))
         .collect()
 }
 
-fn execute(input: &BTreeSet<Point>, get_adjacents: &dyn Fn(Point) -> Vec<Point>) -> BTreeSet<Point> {
+fn execute(input: &BTreeSet<LPoint>, get_adjacents: &dyn Fn(LPoint) -> Vec<LPoint>) -> BTreeSet<LPoint> {
     let mut next = BTreeSet::new();
 
 
@@ -56,20 +62,20 @@ fn execute(input: &BTreeSet<Point>, get_adjacents: &dyn Fn(Point) -> Vec<Point>)
 
 const LIMIT: Point = Point { x: 4, y: 4 };
 
-fn parse_input(input: String) -> BTreeSet<Point> {
+fn parse_input(input: String) -> BTreeSet<LPoint> {
     let mut result = BTreeSet::new();
     input.lines().enumerate().for_each(|(y, line)| {
         line.chars()
             .enumerate()
-            .for_each(|(x, value)| { if value == '#' { result.insert(Point::new(x as isize, y as isize)); } })
+            .for_each(|(x, value)| { if value == '#' { result.insert(LPoint { p: Point::new(x as isize, y as isize), l: 0 }); } })
     });
 
     result
 }
 
-fn biodiversity_rating(map: BTreeSet<Point>) -> usize {
+fn biodiversity_rating(map: BTreeSet<LPoint>) -> usize {
     map.iter().fold(0, |sum, bug| {
-        return sum + 2usize.pow(bug.x as u32 + bug.y as u32 * 5);
+        return sum + 2usize.pow(bug.p.x as u32 + bug.p.y as u32 * 5);
     })
 }
 
@@ -94,8 +100,8 @@ mod tests {
     #[test]
     fn test_biodiversity_rating() {
         let mut map = BTreeSet::new();
-        map.insert(Point::new(0, 3));
-        map.insert(Point::new(1, 4));
+        map.insert(LPoint { p: Point::new(0, 3), l: 0 });
+        map.insert(LPoint { p: Point::new(1, 4), l: 0 });
         assert_eq!(biodiversity_rating(map), 2129920);
     }
 
